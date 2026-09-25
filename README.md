@@ -53,7 +53,7 @@ A night-time ice-fishing trail under the northern lights. The art is Gleb's asse
 | Correct Fill | `#17804F` | correct-answer fill (white text ≥ 4.5:1) |
 | Wrong Fill | `#C7372F` | wrong-answer fill (white text ≥ 4.5:1) |
 
-**Unique home layout.** Home is not a mascot → title → stats → button-stack dashboard. The logo hangs tilted top-left while the red salmon leaps top-right. A dotted trail winds down the ice with three round ice "trail stops" on it (Rules / Results / Settings), each holding a fishing item. Aya the angler stands beside the trail, and the ornate **START** plate sits at the trail's end.
+**Unique home layout.** Home is not a mascot → title → stats → button-stack dashboard. The logo hangs tilted top-left while the red salmon leaps top-right. A dotted trail winds down the ice past a few fishing items (decoration only). Home has a single action, START; Results, Rules and Settings live only in the Menu, so nothing is duplicated. Aya the angler stands beside the trail, and the ornate **START** plate sits at the trail's end.
 
 **Buttons.** Every button is an image plate with a white bold label drawn on top in code.
 - `btn_plate` is drawn as a horizontal **3-slice**: the ice corners stay intact and only the middle stretches.
@@ -189,7 +189,7 @@ adb install -r app-release.apk
 adb logcat -c && adb logcat *:E AndroidRuntime:E | grep -i arcticfishtrail
 ```
 - [ ] The splash shows the logo on Polar Night, with no white flash, and Home appears.
-- [ ] Home: the trail stops, START, Back from Menu, and Back on Home exits.
+- [ ] Home: START, Back from Menu, and Back on Home exits.
 - [ ] Quiz Easy/Medium/Hard: green ✓ / red ✗, auto-advance, pause/resume/restart, the results panel, and the best score shown in the Trail Log.
 - [ ] Pairs level 1 → win → level 2 unlocks. Let the timer run out → Out of Time. Pause stops the timer.
 - [ ] Level 9 (24 cards) fits on a small phone **without scrolling**.

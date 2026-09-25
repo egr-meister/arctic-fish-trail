@@ -7,7 +7,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -20,8 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -40,36 +36,24 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arcticfishtrail.game.ui.Assets
 import com.arcticfishtrail.game.ui.components.GameBackground
 import com.arcticfishtrail.game.ui.components.MenuPlateButton
-import com.arcticfishtrail.game.ui.components.rememberClickWithSound
 import com.arcticfishtrail.game.ui.theme.AuroraGreen
 import com.arcticfishtrail.game.ui.theme.FrostWhite
-import com.arcticfishtrail.game.ui.theme.SunGold
 
 /**
- * Home — "Aurora Trail" composition (not a mascot/title/stats/button-stack dashboard):
+ * Home — "Aurora Trail" composition. Home has exactly ONE action: START.
+ * Results / Rules / Settings live only in the Menu (Base Camp), so nothing is duplicated.
  *  • the logo hangs tilted on the top-left while the red salmon leaps on the top-right,
- *  • a dotted fishing trail winds down across the ice,
- *  • three round ice "trail stops" (Rules, Results, Settings) sit ON the trail, each holding
- *    a fishing item from the art set,
- *  • Aya the angler stands at the side of the trail; the blue fish swims at the trail's end,
- *    where the ornate START plate waits.
+ *  • a dotted fishing trail winds down the ice past a few fishing items (decoration only),
+ *  • Aya the angler stands beside the trail; the trail ends at the ornate START plate.
  */
 @Composable
-fun HomeScreen(
-    onStart: () -> Unit,
-    onResults: () -> Unit,
-    onRules: () -> Unit,
-    onSettings: () -> Unit,
-) {
+fun HomeScreen(onStart: () -> Unit) {
     val bob = rememberInfiniteTransition(label = "bob")
     val bobOffset by bob.animateFloat(
         initialValue = -7f,
@@ -122,7 +106,7 @@ fun HomeScreen(
                 }
             }
 
-            // The trail: stops on the left/centre, Aya standing on the right
+            // The trail: decorative fishing items along it, Aya standing on the right
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -130,11 +114,11 @@ fun HomeScreen(
             ) {
                 val w = maxWidth
                 val h = maxHeight
-                val stops = listOf(0.2f to 0.12f, 0.46f to 0.46f, 0.2f to 0.8f)
-                TrailPath(stops = listOf(0.62f to -0.05f) + stops + (0.5f to 1.08f))
-                TrailStop(Assets.ITEM_COMPASS, "Rules", onRules, stops[0], w, h)
-                TrailStop(Assets.ITEM_TACKLE_BOX, "Results", onResults, stops[1], w, h)
-                TrailStop(Assets.ITEM_LANTERN, "Settings", onSettings, stops[2], w, h)
+                val points = listOf(0.2f to 0.14f, 0.44f to 0.46f, 0.2f to 0.8f)
+                TrailPath(stops = listOf(0.62f to -0.05f) + points + (0.5f to 1.08f))
+                TrailItem(Assets.ITEM_BOBBER, points[0], w, h, (-bobOffset * 0.6f).dp)
+                TrailItem(Assets.ITEM_TACKLE_BOX, points[1], w, h, 0.dp)
+                TrailItem(Assets.ITEM_NET, points[2], w, h, (bobOffset * 0.6f).dp)
                 Image(
                     painter = painterResource(Assets.mascotA),
                     contentDescription = "Aya the angler, ready for the trail",
@@ -207,46 +191,22 @@ private fun TrailPath(stops: List<Pair<Float, Float>>) {
     }
 }
 
+/** A fishing item lying on the trail. Decoration only: not clickable, hidden from TalkBack. */
 @Composable
-private fun TrailStop(
+private fun TrailItem(
     itemIndex: Int,
-    label: String,
-    onClick: () -> Unit,
     centre: Pair<Float, Float>,
     boxWidth: Dp,
     boxHeight: Dp,
+    bob: Dp,
 ) {
-    val bubble = 78.dp
-    val click = rememberClickWithSound(onClick)
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val itemSize = 64.dp
+    Image(
+        painter = painterResource(Assets.item(itemIndex)),
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
         modifier = Modifier
-            .offset(x = boxWidth * centre.first - 55.dp, y = boxHeight * centre.second - bubble / 2)
-            .width(110.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .clickable(role = Role.Button, onClick = click)
-            .semantics(mergeDescendants = true) {},
-    ) {
-        Box(Modifier.size(bubble), contentAlignment = Alignment.Center) {
-            Image(
-                painter = painterResource(Assets.plateRound),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-            )
-            Image(
-                painter = painterResource(Assets.item(itemIndex)),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(0.52f),
-            )
-        }
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text = label,
-            color = SunGold,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.labelLarge,
-            textAlign = TextAlign.Center,
-        )
-    }
+            .offset(x = boxWidth * centre.first - itemSize / 2, y = boxHeight * centre.second - itemSize / 2 + bob)
+            .size(itemSize),
+    )
 }

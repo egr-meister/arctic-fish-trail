@@ -67,9 +67,6 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         composable<HomeRoute> {
             HomeScreen(
                 onStart = { navController.navigateSafely(MenuRoute) },
-                onResults = { navController.navigateSafely(ResultsRoute) },
-                onRules = { navController.navigateSafely(RulesRoute) },
-                onSettings = { navController.navigateSafely(SettingsRoute) },
             )
         }
         composable<MenuRoute> {
