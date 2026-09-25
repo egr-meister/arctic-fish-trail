@@ -1,0 +1,24 @@
+# Gradle / build
+.gradle/
+build/
+**/build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.log
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Signing — never commit keys or secrets
+*.jks
+*.keystore
+*.p12
+*.pfx
+keystore.properties
+signing.env
+*.b64
+release-keys/

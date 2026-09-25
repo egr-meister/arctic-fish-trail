@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Arctic Fish Trail</string>
+    <!-- Public privacy-policy page required by Google Play. Replace with your real URL. -->
+    <string name="privacy_policy_url" translatable="false">https://example.com/arctic-fish-trail/privacy</string>
+</resources>

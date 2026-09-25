@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- "Aurora Ice Trail" palette (mirrors ui/theme/Color.kt) -->
+    <color name="polar_night">#FF0B1E3A</color>
+    <color name="glacier_blue">#FF1C4E80</color>
+    <color name="ice_teal">#FF2EC4B6</color>
+    <color name="frost_white">#FFEAF6FF</color>
+    <color name="aurora_green">#FF7CFFB2</color>
+    <color name="salmon_coral">#FFFF6B5B</color>
+    <color name="sun_gold">#FFFFC857</color>
+    <color name="slate_ice">#FF8FB3D1</color>
+    <color name="ic_launcher_background">#FF0B1E3A</color>
+</resources>

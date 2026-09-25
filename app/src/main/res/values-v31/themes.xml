@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ArcticFishTrail" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/polar_night</item>
+        <item name="android:colorBackground">@color/polar_night</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowSplashScreenBackground">@color/polar_night</item>
+    </style>
+
+    <style name="Theme.ArcticFishTrail.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/polar_night</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.ArcticFishTrail</item>
+    </style>
+</resources>
