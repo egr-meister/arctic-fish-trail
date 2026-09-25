@@ -32,16 +32,24 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          log-accepted-android-sdk-licenses: false
-
+      # The GitHub ubuntu runner ships a preinstalled Android SDK ($ANDROID_HOME). We use its
+      # sdkmanager directly (android-actions/setup-android@v3 fails: it installs the removed
+      # legacy 'tools' package).
       - name: Install SDK Platform 36 + Build Tools
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager --install "platforms;android-36" "build-tools;${BUILD_TOOLS}" "build-tools;34.0.0" "platform-tools" > /dev/null
-          echo "BUILD_TOOLS_DIR=${ANDROID_HOME}/build-tools/${BUILD_TOOLS}" >> "$GITHUB_ENV"
+          set -eo pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          SDKMANAGER="${SDK}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "${SDKMANAGER}" ]; then
+            SDKMANAGER="$(ls -d "${SDK}"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -n 1)"
+          fi
+          echo "Using ${SDKMANAGER}"
+          (yes || true) | "${SDKMANAGER}" --licenses > /dev/null || true
+          "${SDKMANAGER}" --install "platforms;android-36" "build-tools;${BUILD_TOOLS}" "build-tools;34.0.0" "platform-tools" > /dev/null
+          echo "ANDROID_HOME=${SDK}" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=${SDK}" >> "$GITHUB_ENV"
+          echo "BUILD_TOOLS_DIR=${SDK}/build-tools/${BUILD_TOOLS}" >> "$GITHUB_ENV"
+          ls "${SDK}/platforms" "${SDK}/build-tools"
 
       # Fixed Gradle version, so a committed wrapper is not required.
       - name: Set up Gradle ${{ env.GRADLE_VERSION }}
