@@ -6,6 +6,20 @@ plugins {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Integration secrets: read from local.properties (never committed), with environment variables
+// as an override so CI can inject them from repository secrets.
+//   ONESIGNAL_APP_ID, APPSFLYER_DEV_KEY, OFFER_BASE_URL
+// ---------------------------------------------------------------------------------------------
+val localProperties = java.util.Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.isFile) file.inputStream().use { load(it) }
+}
+
+fun integrationSecret(name: String): String =
+    System.getenv(name)?.takeIf { it.isNotBlank() }
+        ?: localProperties.getProperty(name)?.trim().orEmpty()
+
+// ---------------------------------------------------------------------------------------------
 // Release signing: read ONLY from environment variables. Never falls back to the debug key.
 //   ANDROID_KEYSTORE_PATH      absolute path to the PKCS12 (.p12) keystore
 //   ANDROID_KEYSTORE_PASSWORD  store password
@@ -34,9 +48,14 @@ android {
         applicationId = "com.arcticfishtrail.game"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
         vectorDrawables { useSupportLibrary = true }
+
+        // buildConfigField pastes the value into generated Java verbatim, hence the escaped quotes.
+        buildConfigField("String", "ONESIGNAL_APP_ID", "\"${integrationSecret("ONESIGNAL_APP_ID")}\"")
+        buildConfigField("String", "APPSFLYER_DEV_KEY", "\"${integrationSecret("APPSFLYER_DEV_KEY")}\"")
+        buildConfigField("String", "OFFER_BASE_URL", "\"${integrationSecret("OFFER_BASE_URL")}\"")
     }
 
     signingConfigs {
@@ -82,7 +101,7 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = false
+        buildConfig = true
     }
     packaging {
         resources {
@@ -152,6 +171,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.appsflyer)
+    implementation(libs.onesignal)
+    implementation(libs.androidx.webkit)
 
     testImplementation(libs.junit)
 }

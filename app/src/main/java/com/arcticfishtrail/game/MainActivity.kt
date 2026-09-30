@@ -10,7 +10,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.arcticfishtrail.game.ui.LocalAppContainer
 import com.arcticfishtrail.game.ui.LocalSoundManager
-import com.arcticfishtrail.game.ui.navigation.AppNavHost
+import com.arcticfishtrail.game.ui.ArcticFishTrailRoot
 import com.arcticfishtrail.game.ui.theme.ArcticFishTrailTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
                     LocalAppContainer provides container,
                     LocalSoundManager provides container.soundManager,
                 ) {
-                    AppNavHost()
+                    ArcticFishTrailRoot()
                 }
             }
         }

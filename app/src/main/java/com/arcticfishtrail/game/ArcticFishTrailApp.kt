@@ -16,7 +16,7 @@ class AppContainer(
     val soundManager: SoundManager,
 )
 
-class ArcticFishTrailApp : Application() {
+open class ArcticFishTrailApp : Application() {
 
     lateinit var container: AppContainer
         private set
