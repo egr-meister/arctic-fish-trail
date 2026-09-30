@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -10,7 +12,7 @@ plugins {
 // as an override so CI can inject them from repository secrets.
 //   ONESIGNAL_APP_ID, APPSFLYER_DEV_KEY, OFFER_BASE_URL
 // ---------------------------------------------------------------------------------------------
-val localProperties = java.util.Properties().apply {
+val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.isFile) file.inputStream().use { load(it) }
 }
