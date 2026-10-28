@@ -50,7 +50,8 @@ object TrafficRouter {
         // The whole map. Hand-picking "the keys we need" is the classic regression: it
         // compiles, it runs, and the network quietly loses parameters.
         attribution = IntegrationStorage.attributionParams,
-        adid = IntegrationStorage.adid,
+        // Blocks briefly for the adid so it makes the first click; already on the executor.
+        adid = AdjustManager.awaitAdid(),
         extras = deviceSignals(),
         sub1InPath = BuildConfig.OFFER_ROUTING == "prily"
     )
