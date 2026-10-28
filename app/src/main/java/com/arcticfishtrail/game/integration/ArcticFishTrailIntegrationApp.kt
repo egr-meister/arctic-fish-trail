@@ -19,6 +19,8 @@ class ArcticFishTrailIntegrationApp : ArcticFishTrailApp() {
         // Sampling takes a full second, so it must begin at launch - starting it where the
         // URL is built would block that thread for the whole window.
         AccelerometerProbe.start(this)
+        // Reading the GAID blocks on Play Services, so begin it at launch too.
+        GaidProbe.start(this)
         AdjustManager.init(this)
         // The token must exist before the single click, so request it at launch.
         PushManager.init(this)

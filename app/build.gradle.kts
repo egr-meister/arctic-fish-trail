@@ -115,8 +115,8 @@ android {
         applicationId = "com.arcticfishtrail.game"
         minSdk = 24
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.0.3"
+        versionCode = 5
+        versionName = "1.0.4"
         vectorDrawables { useSupportLibrary = true }
 
         // buildConfigField pastes the value into generated Java verbatim, hence the escaped quotes.

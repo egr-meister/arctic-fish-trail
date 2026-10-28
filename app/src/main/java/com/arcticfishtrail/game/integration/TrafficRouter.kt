@@ -84,6 +84,8 @@ object TrafficRouter {
         "sub12" to DeviceSignals.battery,
         "sub13" to AccelerometerProbe.await(),
         "sub14" to DeviceSignals.isTestEnvironment.toString(),
+        // GAID: the primary postback-matching key, so it rides in every click, blank included.
+        "gps_adid" to GaidProbe.await(),
         "push_token" to PushManager.awaitToken(),
         "push_id" to IntegrationStorage.pushId
     )

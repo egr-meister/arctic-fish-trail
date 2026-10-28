@@ -27,3 +27,6 @@ keystore.properties
 signing.env
 *.b64
 release-keys/
+
+# Downloaded CI artifacts
+dist/

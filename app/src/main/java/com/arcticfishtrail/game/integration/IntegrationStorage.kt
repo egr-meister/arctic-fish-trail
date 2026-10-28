@@ -18,6 +18,7 @@ object IntegrationStorage {
     private const val PREFS_NAME = "integration_prefs"
     private const val KEY_ATTRIBUTION = "attribution"
     private const val KEY_ADID = "adid"
+    private const val KEY_GPS_ADID = "gps_adid"
     private const val KEY_PUSH_TOKEN = "push_token"
     private const val KEY_PUSH_ID = "push_id"
     private const val KEY_CACHED_OFFER_URL = "cached_offer_url"
@@ -79,6 +80,18 @@ object IntegrationStorage {
         set(value) {
             if (value.isNullOrBlank()) return
             prefs.edit().putString(KEY_ADID, value).apply()
+        }
+
+    /**
+     * Google Advertising ID (GAID) - a DIFFERENT identifier from the Adjust adid, and the
+     * primary key the Adjust S2S postbacks match a conversion to this install by on Android.
+     * A blank read means "not ready yet" (or LAT), so it must never clear a stored one.
+     */
+    var gpsAdid: String?
+        get() = prefs.getString(KEY_GPS_ADID, null)
+        set(value) {
+            if (value.isNullOrBlank()) return
+            prefs.edit().putString(KEY_GPS_ADID, value).apply()
         }
 
     /** The FCM token. Blank means "not ready yet"; it must never replace a stored token. */
