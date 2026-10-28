@@ -21,7 +21,10 @@ import java.util.concurrent.TimeUnit
 object AdjustManager {
 
     private const val TAG = "AdjustManager"
-    private const val ADID_AWAIT_MS = 3_000L
+    // adid arrives with the first session response, which on a fresh install can lag a few
+    // seconds behind an organic attribution verdict. Give it a window on par with the
+    // attribution wait so it makes the single click instead of landing just after it.
+    private const val ADID_AWAIT_MS = 8_000L
 
     private lateinit var appContext: Context
 

@@ -22,6 +22,7 @@ import com.arcticfishtrail.game.ui.components.LoadingHint
 import com.arcticfishtrail.game.ui.navigation.AppNavHost
 import com.arcticfishtrail.game.ui.screens.OfferWebViewScreen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -59,10 +60,19 @@ fun ArcticFishTrailRoot() {
     LaunchedEffect(reroutes) {
         if (!withContext(Dispatchers.IO) { IntegrationStorage.hasRouteDecision() }) {
             withTimeoutOrNull(ATTRIBUTION_TIMEOUT_MS + 2_000L) {
-                suspendCancellableCoroutine { continuation ->
-                    AdjustManager.awaitAttribution(ATTRIBUTION_TIMEOUT_MS) {
-                        if (continuation.isActive) continuation.resume(Unit)
+                // Attribution and adid are awaited in parallel, not in sequence: an organic
+                // verdict can land in a second or two, and if we built the URL right then the
+                // adid (which arrives with the session response) would miss the single click.
+                // Both were kicked off back in Application.onCreate / init.
+                coroutineScope {
+                    launch {
+                        suspendCancellableCoroutine { continuation ->
+                            AdjustManager.awaitAttribution(ATTRIBUTION_TIMEOUT_MS) {
+                                if (continuation.isActive) continuation.resume(Unit)
+                            }
+                        }
                     }
+                    launch(Dispatchers.IO) { AdjustManager.awaitAdid() }
                 }
             }
         }
