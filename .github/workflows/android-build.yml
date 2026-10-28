@@ -72,15 +72,42 @@ jobs:
       - name: Unit tests
         run: gradle --no-daemon testDebugUnitTest
 
+      - name: Validate integration secrets
+        env:
+          ADJUST_APP_TOKEN: ${{ secrets.ADJUST_APP_TOKEN }}
+          OFFER_BASE_URL: ${{ secrets.OFFER_BASE_URL }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          set -eo pipefail
+          fail=0
+          [ -z "$ADJUST_APP_TOKEN" ] && { echo "::error::Missing secret ADJUST_APP_TOKEN."; fail=1; }
+          if [ -z "$OFFER_BASE_URL" ]; then
+            echo "::error::Missing secret OFFER_BASE_URL."; fail=1
+          else
+            case "$OFFER_BASE_URL" in
+              http://*|https://*) ;;
+              *) echo "::error::OFFER_BASE_URL must start with http:// or https:// or the install goes White forever."; fail=1 ;;
+            esac
+          fi
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::error::Missing secret GOOGLE_SERVICES_JSON - the release would ship without push."
+            fail=1
+          elif ! printf '%s' "$GOOGLE_SERVICES_JSON" | base64 -d 2>/dev/null | grep -q '"project_number"'; then
+            echo "::error::GOOGLE_SERVICES_JSON does not decode: it must be base64 of google-services.json."
+            fail=1
+          fi
+          [ "$fail" = "1" ] && exit 1 || echo "Integration secrets present."
+
       - name: Build signed release APK + AAB
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           # local.properties is not committed; the integration keys come from repo secrets.
-          ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
-          APPSFLYER_DEV_KEY: ${{ secrets.APPSFLYER_DEV_KEY }}
+          ADJUST_APP_TOKEN: ${{ secrets.ADJUST_APP_TOKEN }}
           OFFER_BASE_URL: ${{ secrets.OFFER_BASE_URL }}
+          OFFER_ROUTING: ${{ secrets.OFFER_ROUTING }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: gradle --no-daemon assembleRelease bundleRelease
 
       - name: Verify APK signature (fail on debug certificate)

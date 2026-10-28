@@ -13,6 +13,11 @@ captures/
 *.iml
 .DS_Store
 
+# Firebase — the real config is materialised from GOOGLE_SERVICES_JSON at build time,
+# and a stub is written for local builds; neither is ever committed.
+google-services.json
+**/google-services.json
+
 # Signing — never commit keys or secrets
 *.jks
 *.keystore

@@ -1,9 +1,9 @@
 package com.arcticfishtrail.game.integration
 
 /**
- * Splits an AppsFlyer `campaign` value into positional sub-parameters.
+ * Splits the tracker's `campaign` value into positional sub-parameters.
  *
- * The network packs several fields into one underscore-joined string; the tracker on the
+ * Adjust packs several fields into one underscore-joined string; the tracker on the
  * receiving end expects them back as sub1..subN alongside the untouched original.
  * Segments are never decoded: `sub3%26` stays `sub3%26`, otherwise a raw `&` would later
  * split the query.

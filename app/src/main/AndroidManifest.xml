@@ -2,14 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Integration layer: AppsFlyer attribution, offer probe + WebView, OneSignal push. -->
+    <!-- Integration layer: Adjust attribution, offer WebView, Firebase Cloud Messaging push. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <!-- usesCleartextTraffic: from targetSdk 28 the platform blocks http:// before the WebView's
-         MIXED_CONTENT_ALWAYS_ALLOW is consulted, and the probe would fail on https -> http hops.
-         tools:replace: the AppsFlyer SDK manifest declares its own backup rules. -->
+         MIXED_CONTENT_ALWAYS_ALLOW is consulted, so offer pages pulling http assets from an
+         https shell would fail.
+         tools:replace: the Adjust SDK manifest declares allowBackup="true" with its own
+         tools:replace, so this forces the integration's allowBackup="false" to win instead -
+         a restored white_locked flag would close a brand new install into White forever. -->
     <application
         android:name=".integration.ArcticFishTrailIntegrationApp"
         android:allowBackup="false"
@@ -27,6 +30,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.ArcticFishTrail.Starting">
@@ -35,6 +39,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Firebase Cloud Messaging: token refresh and incoming pushes. -->
+        <service
+            android:name=".integration.PushService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

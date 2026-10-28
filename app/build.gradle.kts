@@ -1,3 +1,5 @@
+import java.io.File
+import java.util.Base64
 import java.util.Properties
 
 plugins {
@@ -5,12 +7,13 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
 }
 
 // ---------------------------------------------------------------------------------------------
 // Integration secrets: read from local.properties (never committed), with environment variables
 // as an override so CI can inject them from repository secrets.
-//   ONESIGNAL_APP_ID, APPSFLYER_DEV_KEY, OFFER_BASE_URL
+//   ADJUST_APP_TOKEN, OFFER_BASE_URL, OFFER_ROUTING, GOOGLE_SERVICES_JSON
 // ---------------------------------------------------------------------------------------------
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
@@ -20,6 +23,68 @@ val localProperties = Properties().apply {
 fun integrationSecret(name: String): String =
     System.getenv(name)?.takeIf { it.isNotBlank() }
         ?: localProperties.getProperty(name)?.trim().orEmpty()
+
+// ---------------------------------------------------------------------------------------------
+// google-services.json materialisation.
+//
+// The file never enters the repository. It arrives like the other secrets: GOOGLE_SERVICES_JSON
+// (base64) from local.properties locally, GitHub Secrets on CI. The google-services plugin needs
+// a file per build type whose package_name matches the applied applicationId, so one is written
+// for debug and one for release before the plugin reads them.
+//
+//   - debug ALWAYS gets a stub: its applicationId ends in `.debug`, which the real production
+//     file never matches, and the plugin fails on a mismatch.
+//   - release gets the real decoded file when the secret is present, otherwise a stub so a local
+//     build still assembles. A stub ships WITHOUT working push: project_number is all zeros.
+//     Locally this is only good for White/Black, routing, signals and signature - not push.
+// ---------------------------------------------------------------------------------------------
+fun stubGoogleServices(packageName: String): String = """
+    {
+      "project_info": {
+        "project_number": "000000000000",
+        "project_id": "arctic-fish-trail-stub",
+        "storage_bucket": "arctic-fish-trail-stub.appspot.com"
+      },
+      "client": [
+        {
+          "client_info": {
+            "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+            "android_client_info": { "package_name": "$packageName" }
+          },
+          "oauth_client": [],
+          "api_key": [ { "current_key": "AIzaSyStubStubStubStubStubStubStubStub0000" } ],
+          "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+        }
+      ],
+      "configuration_version": "1"
+    }
+""".trimIndent()
+
+fun writeGoogleServices(buildTypeDir: String, packageName: String, allowReal: Boolean) {
+    val outDir = File(projectDir, "src/$buildTypeDir")
+    outDir.mkdirs()
+    val out = File(outDir, "google-services.json")
+    val base64 = integrationSecret("GOOGLE_SERVICES_JSON")
+    val real = if (allowReal && base64.isNotBlank()) {
+        runCatching { String(Base64.getMimeDecoder().decode(base64.trim())) }
+            .getOrNull()
+            ?.takeIf { it.contains("\"project_number\"") }
+    } else {
+        null
+    }
+    if (real != null) {
+        out.writeText(real)
+    } else {
+        if (allowReal) {
+            logger.warn("GOOGLE_SERVICES_JSON is absent or unparsable - writing a push-less stub for $buildTypeDir.")
+        }
+        out.writeText(stubGoogleServices(packageName))
+    }
+}
+
+// Written at configuration time so both files exist before the google-services plugin reads them.
+writeGoogleServices(buildTypeDir = "debug", packageName = "com.arcticfishtrail.game.debug", allowReal = false)
+writeGoogleServices(buildTypeDir = "release", packageName = "com.arcticfishtrail.game", allowReal = true)
 
 // ---------------------------------------------------------------------------------------------
 // Release signing: read ONLY from environment variables. Never falls back to the debug key.
@@ -50,14 +115,19 @@ android {
         applicationId = "com.arcticfishtrail.game"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
         vectorDrawables { useSupportLibrary = true }
 
         // buildConfigField pastes the value into generated Java verbatim, hence the escaped quotes.
-        buildConfigField("String", "ONESIGNAL_APP_ID", "\"${integrationSecret("ONESIGNAL_APP_ID")}\"")
-        buildConfigField("String", "APPSFLYER_DEV_KEY", "\"${integrationSecret("APPSFLYER_DEV_KEY")}\"")
+        buildConfigField("String", "ADJUST_APP_TOKEN", "\"${integrationSecret("ADJUST_APP_TOKEN")}\"")
         buildConfigField("String", "OFFER_BASE_URL", "\"${integrationSecret("OFFER_BASE_URL")}\"")
+        // aso | prily - the campaign group decides the link shape (sub1 in the path for prily).
+        buildConfigField(
+            "String",
+            "OFFER_ROUTING",
+            "\"${integrationSecret("OFFER_ROUTING").ifBlank { "aso" }}\"",
+        )
     }
 
     signingConfigs {
@@ -174,8 +244,13 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.appsflyer)
-    implementation(libs.onesignal)
+    // Integration layer: attribution (Adjust v5) and push (Firebase Cloud Messaging).
+    implementation(libs.adjust)
+    implementation(libs.installreferrer)
+    implementation(libs.play.services.ads.identifier)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    // Re-enables the X-Requested-With header the WebView stopped sending in M108.
     implementation(libs.androidx.webkit)
 
     testImplementation(libs.junit)
